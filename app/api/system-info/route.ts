@@ -3,7 +3,6 @@ import si from 'systeminformation';
 
 export async function GET() {
   try {
-    
     const [cpu, mem, disks, time, gpu, temperatures, memLayout] = await Promise.all([
       si.cpu(),
       si.mem(),
@@ -11,10 +10,13 @@ export async function GET() {
       si.time(),
       si.graphics(),
       si.cpuTemperature(),
-      si.memLayout(), 
+      si.memLayout(),
     ]);
+
     const gpuController = gpu.controllers?.[0] || null;
-    
+
+    const relevantMemory = memLayout.filter((slot) => slot.size > 0);
+
     const systemInfo = {
       processor: {
         usage: await si.currentLoad().then((data) => Math.round(data.currentLoad)),
@@ -27,20 +29,22 @@ export async function GET() {
         usage: Math.round((mem.active / mem.total) * 100),
         total: Math.round(mem.total / 1024 / 1024 / 1024),
         available: Math.round(mem.available / 1024 / 1024 / 1024),
-        model: `${memLayout[0]?.manufacturer} DDR${memLayout[0]?.type}`, 
+        model: relevantMemory.map(slot => `${slot.manufacturer || 'Unknown'} ${slot.type}`), // Get manufacturer and type.
       },
       storage: disks.map((disk) => ({
         usage: Math.round((disk.used / disk.size) * 100),
         total: Math.round(disk.size / 1024 / 1024 / 1024),
         free: Math.round(disk.available / 1024 / 1024 / 1024),
       })),
-      gpu: gpuController ? {
-        usage: gpuController.utilizationGpu ? Math.round(gpuController.utilizationGpu) : 0,
-        model: gpuController.model ?? 'N/A',
-        temperature: gpuController.temperatureGpu ? Math.round(gpuController.temperatureGpu) : 0,
-        vram: gpuController.memoryTotal ? Math.round(gpuController.memoryTotal / 1024) : 0,   
-        vramUsed: gpuController.memoryUsed ? Math.round(gpuController.memoryUsed / 1024) : 0  
-      } : null,
+      gpu: gpuController
+        ? {
+            usage: gpuController.utilizationGpu ? Math.round(gpuController.utilizationGpu) : 0,
+            model: gpuController.model ?? 'N/A',
+            temperature: gpuController.temperatureGpu ? Math.round(gpuController.temperatureGpu) : 0,
+            vram: gpuController.memoryTotal ? Math.round(gpuController.memoryTotal / 1024) : 0,
+            vramUsed: gpuController.memoryUsed ? Math.round(gpuController.memoryUsed / 1024) : 0,
+          }
+        : null,
       uptime: time.uptime,
     };
 
@@ -48,9 +52,6 @@ export async function GET() {
 
   } catch (error) {
     console.error('Failed to fetch system information:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch system information' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch system information' }, { status: 500 });
   }
 }

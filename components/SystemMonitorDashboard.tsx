@@ -22,7 +22,7 @@ const renderUsageWithDimming = (usage: string) => {
   return chars.map((char, index) => {
     if (leadingZero && char === '0') {
       return (
-        <span key={index} className="text-gray-500">
+        <span key={index} className="text-gray-500" >
           {char}
         </span>
       );
@@ -45,7 +45,7 @@ interface MemoryInfo {
   usage: number;
   available: number;
   total: number;
-  model: string;
+  model: string[];
 }
 
 interface StorageInfo {
@@ -90,7 +90,7 @@ const InfoCard = ({ title, info, color, showTemperature = false }: { title: stri
   if ('usage' in info) {
     usageDisplay = info.usage.toString().padStart(3, '0');
   }
-
+  
   const availableAmount = 'available' in info ? info.available.toString() : '';
 
   const temperature = 'temperature' in info && info.temperature ? `${info.temperature}°C` : null;
@@ -101,8 +101,14 @@ const InfoCard = ({ title, info, color, showTemperature = false }: { title: stri
         <h2 className="text-lg font-semibold mb-2" style={{ color }}>{title}</h2>
       </div>
 
-      {'model' in info && (
-        <p className="text-xs mb-2 opacity-70 text-gray-300">{info.model || 'Unknown Manufacturer'}</p>
+      {'model' in info && title === 'Processor' && (
+        <p className="text-xs mb-2 opacity-70 text-gray-300">{info.model}</p>
+      )}
+
+      {title === 'Memory' && Array.isArray(info.model) && (
+        <p className="text-xs mb-2 opacity-70 text-gray-300">
+          {Array.from(new Set(info.model)).join(', ')}
+        </p>
       )}
 
       <div className="text-4xl font-bold mb-1" style={{ color }}>
@@ -117,6 +123,7 @@ const InfoCard = ({ title, info, color, showTemperature = false }: { title: stri
       <p className="text-xs mb-3 opacity-70 text-gray-300">{showTemp ? 'Temperature' : `${title.toLowerCase()} usage`}</p>
 
       <div className="grid grid-cols-2 gap-2 text-center text-gray-300">
+        
         {'cores' in info && 'speed' in info && (
           <>
             <div>
@@ -341,7 +348,7 @@ export default function SystemMonitorDashboard() {
       setUtilizationData((prev) => {
         const updatedDatasets = prev.datasets.map((dataset) => {
           if (dataset.label === 'GPU') {
-            return { ...dataset, data: [...dataset.data.slice(-19), info.gpu?.usage ?? 0] };
+            return { ...dataset, data: [...dataset.data.slice(-19), info.gpu?.usage ?? 0] }; 
           } else {
             return dataset.label === 'Processor'
               ? { ...dataset, data: [...dataset.data.slice(-19), info.processor.usage] }
@@ -368,17 +375,14 @@ export default function SystemMonitorDashboard() {
           if (dataset.label === 'GPU Temperature') {
             return { ...dataset, data: [...dataset.data.slice(-19), info.gpu?.temperature ?? 0] };
           } else {
-            return {
-              ...dataset,
-              data: [...dataset.data.slice(-19), info.processor.temperature],
-            };
+            return { ...dataset, data: [...dataset.data.slice(-19), info.processor.temperature] };
           }
         });
 
         if (info.gpu && !prev.datasets.some((dataset) => dataset.label === 'GPU Temperature')) {
           updatedDatasets.push({
             label: 'GPU Temperature',
-            data: new Array(20).fill(0).concat(info.gpu.temperature),
+            data: new Array(20).fill(0).concat(info.gpu.temperature), 
             borderColor: 'rgb(139, 92, 246)',
             backgroundColor: 'rgba(139, 92, 246, 0.5)',
           });
@@ -390,7 +394,7 @@ export default function SystemMonitorDashboard() {
 
     updateSystemInfo();
 
-    const interval = setInterval(updateSystemInfo, 1000);
+    const interval = setInterval(updateSystemInfo, 1000); 
     return () => clearInterval(interval);
   }, []);
 
