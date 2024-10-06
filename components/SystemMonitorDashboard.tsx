@@ -16,6 +16,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
+// Define the type for system stats (processor, memory, storage)
 interface SystemInfo {
   processor: { usage: number; model: string; cores: number; speed: string };
   memory: { usage: number; free: number; total: number };
@@ -23,8 +24,31 @@ interface SystemInfo {
   uptime: number;
 }
 
-const InfoCard = ({ title, info, color }: { title: string; info: any; color: string }) => {
-  const freePercentage = info.total ? Math.round((info.free / info.total) * 100) : 0;
+// Define the details for each system resource (Processor, Memory, Storage parts)
+interface SystemInfoDetails {
+  usage: number;
+  total?: number;
+  model?: string;
+  cores?: number;
+  speed?: string;
+  free?: number;
+}
+
+// Type for utilization chart data
+interface ChartData {
+  labels: string[];
+  datasets: {
+    label: string;
+    data: number[];
+    borderColor: string;
+    backgroundColor: string;
+    hidden?: boolean;
+  }[];
+}
+
+// InfoCard now expects a more explicit type instead of `any`
+const InfoCard = ({ title, info, color }: { title: string; info: SystemInfoDetails; color: string }) => {
+  const freePercentage = info.total ? Math.round((info.free! / info.total) * 100) : 0;
   const usage = info.usage.toString().padStart(3, '0');
 
   const renderUsageWithDimming = (usage: string) => {
@@ -155,11 +179,42 @@ const StorageCardWithTabs = ({ storageData }: { storageData: SystemInfo['storage
   );
 };
 
-// WARD component with color gradient applied to title and content vertically centered
+// % Utilization chart component (fully typed)
+const UtilizationChart = ({ utilizationData }: { utilizationData: ChartData }) => {
+  return (
+    <div className="bg-gray-900 rounded-lg shadow-lg p-4 h-full min-h-[300px] flex flex-col justify-center items-center">
+      <h2 className="text-lg font-semibold mb-4 text-white">% Utilization</h2>
+      <div style={{ height: '120px', width: '100%' }}>
+        <Line
+          data={utilizationData}
+          options={{
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 100,
+                ticks: {
+                  stepSize: 10, // Fixed step of 10
+                  maxTicksLimit: 11, // Make sure we have up to 11 ticks (0, 10, ..., 100)
+                },
+              },
+              x: { display: false },
+            },
+            plugins: {
+              legend: { position: 'top', labels: { usePointStyle: true, pointStyle: 'line' } },
+            },
+          }}
+        />
+      </div>
+    </div>
+  );
+};
+
 const WARD = ({ uptime }: { uptime: { days: number; hours: number; minutes: number; seconds: number } }) => {
   return (
     <div className="bg-gray-900 rounded-lg shadow-lg p-4 w-full h-full min-h-[300px] flex flex-col justify-center items-center text-center">
-      {/* Color applied to WARD title */}
+      {/* Apply gradient color to W.A.R.D title */}
       <h2 className="text-lg font-semibold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500">
         W.A.R.D
       </h2>
@@ -176,51 +231,9 @@ const WARD = ({ uptime }: { uptime: { days: number; hours: number; minutes: numb
   );
 };
 
-// Utilization chart with % Utilization text centered
-const UtilizationChart = ({ utilizationData }: { utilizationData: any }) => {
-  return (
-    <div className="bg-gray-900 rounded-lg shadow-lg p-4 h-full min-h-[300px] flex flex-col justify-center items-center">
-      {/* Centered % Utilization text */}
-      <h2 className="text-lg font-semibold mb-4 text-white">% Utilization</h2>
-      <div style={{ height: '120px', width: '100%' }}>
-        <Line
-          data={utilizationData}
-          options={{
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              y: {
-                beginAtZero: true,
-                max: 100,
-                ticks: {
-                  stepSize: 10, // Show steps of 10
-                  maxTicksLimit: 11, // Ensure an even distribution of ticks from 0 to 100
-                },
-              },
-              x: { display: false },
-            },
-            plugins: {
-              legend: { position: 'top', labels: { usePointStyle: true, pointStyle: 'line' } },
-            },
-          }}
-        />
-      </div>
-    </div>
-  );
-};
-
 export default function SystemMonitorDashboard() {
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
-  const [utilizationData, setUtilizationData] = useState<{
-    labels: string[];
-    datasets: {
-      label: string;
-      data: number[];
-      borderColor: string;
-      backgroundColor: string;
-      hidden: boolean;
-    }[];
-  }>({
+  const [utilizationData, setUtilizationData] = useState<ChartData>({
     labels: Array(20).fill(''),
     datasets: [
       { label: 'Processor', data: [], borderColor: 'rgb(59, 130, 246)', backgroundColor: 'rgba(59, 130, 246, 0.5)', hidden: false },
@@ -235,6 +248,7 @@ export default function SystemMonitorDashboard() {
       const info: SystemInfo = await response.json();
       setSystemInfo(info);
 
+      // Update chart data for processor, memory, and storage
       setUtilizationData((prev) => ({
         labels: [...prev.labels.slice(-19), ''],
         datasets: prev.datasets.map((dataset, index) => ({
@@ -251,12 +265,13 @@ export default function SystemMonitorDashboard() {
 
     updateSystemInfo();
     
-    // Update every second
-    const interval = setInterval(updateSystemInfo, 1000); // Changed to 1000ms for 1 second interval
+    // Set an update interval every 1 second
+    const interval = setInterval(updateSystemInfo, 1000);
 
     return () => clearInterval(interval);
   }, []);
 
+  // Format uptime
   const formatUptime = (seconds: number) => {
     const days = Math.floor(seconds / (3600 * 24));
     const hours = Math.floor((seconds % (3600 * 24)) / 3600);
@@ -266,20 +281,20 @@ export default function SystemMonitorDashboard() {
     return { days, hours, minutes, seconds: remainingSeconds };
   };
 
-  if (!systemInfo) 
+  if (!systemInfo) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-2xl text-gray-300">Loading...</div>
       </div>
     );
+  }
 
   const uptime = formatUptime(systemInfo.uptime);
 
   return (
     <div className="h-screen bg-gray-800 flex items-center justify-center">
       <div className="container max-w-6xl mx-auto px-6 md:px-10 py-4">
-        
-        {/* Top info cards */}
+        {/* Top section with Info Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-8 mb-8">
           <InfoCard title="Processor" info={systemInfo.processor} color="rgb(59, 130, 246)" />
           <InfoCard title="Memory" info={systemInfo.memory} color="rgb(239, 68, 68)" />

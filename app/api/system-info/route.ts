@@ -32,6 +32,7 @@ export async function GET() {
 
     return NextResponse.json(systemInfo)
   } catch (error) {
+    console.log(error)
     return NextResponse.json({ error: 'Failed to fetch system information' }, { status: 500 })
   }
 }
