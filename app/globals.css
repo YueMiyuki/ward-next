@@ -25,3 +25,45 @@ body {
     text-wrap: balance;
   }
 }
+
+.card {
+  background: linear-gradient(130deg, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.4));
+  position: relative;
+  overflow: hidden;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 15px 5px rgba(0, 0, 0, 0.1); }
+  70% { box-shadow: 0 0 30px 10px rgba(0, 0, 0, 0.5); }
+  100% { box-shadow: 0 0 15px 5px rgba(0, 0, 0, 0.1); }
+}
+
+.ward-box {
+  text-align: center;
+  position: relative;
+}
+
+.ward-title {
+  font-size: 1.5rem;
+  color: rgb(59, 130, 246);
+  margin-bottom: 0.5rem;
+}
+
+.ward-uptime {
+  font-size: 2.5rem;
+  color: rgb(239, 68, 68);
+  font-weight: bold;
+}
+
+.ward-labels {
+  display: flex;
+  justify-content: space-evenly;
+  color: white;
+  margin-top: 0.5rem;
+}
+
+.ward-labels span {
+  font-size: 0.75rem;
+  letter-spacing: 0.15rem;
+}
