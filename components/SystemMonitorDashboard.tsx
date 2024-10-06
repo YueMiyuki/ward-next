@@ -45,7 +45,7 @@ interface MemoryInfo {
   usage: number;
   available: number;
   total: number;
-  model: string; // Added manufacturer and type info for memory
+  model: string;
 }
 
 interface StorageInfo {
@@ -81,7 +81,7 @@ interface ChartData {
   }[];
 }
 
-const InfoCard = ({ title, info, color, showTemperature = false }: { title: string; info: ProcessorInfo | MemoryInfo; color: string; showTemperature?: boolean}) => {
+const InfoCard = ({ title, info, color, showTemperature = false }: { title: string; info: ProcessorInfo | MemoryInfo; color: string; showTemperature?: boolean }) => {
   const [showTemp, setShowTemp] = useState(showTemperature);
 
   const toggleTemp = () => setShowTemp((prev) => !prev);
@@ -101,9 +101,8 @@ const InfoCard = ({ title, info, color, showTemperature = false }: { title: stri
         <h2 className="text-lg font-semibold mb-2" style={{ color }}>{title}</h2>
       </div>
 
-      {/* Handling undefined manufacturer/type gracefully */}
       {'model' in info && (
-        <p className="text-xs mb-2 opacity-70 text-gray-300">{info.model || 'Unknown Manufacturer'} {/* Fallback */}</p>
+        <p className="text-xs mb-2 opacity-70 text-gray-300">{info.model || 'Unknown Manufacturer'}</p>
       )}
 
       <div className="text-4xl font-bold mb-1" style={{ color }}>
@@ -339,24 +338,23 @@ export default function SystemMonitorDashboard() {
       const info: SystemInfo = await response.json();
       setSystemInfo(info);
 
-      // Adjust the dataset for Utilization Chart based on whether GPU exists
       setUtilizationData((prev) => {
-        const updatedDatasets = prev.datasets.map((dataset, index) => {
-          if (index === 0) {
-            return { ...dataset, data: [...dataset.data.slice(-19), info.processor.usage] };
-          } else if (index === 1) {
-            return { ...dataset, data: [...dataset.data.slice(-19), info.memory.usage] };
-          } else if (index === 2) {
-            return { ...dataset, data: [...dataset.data.slice(-19), info.storage[0]?.usage ?? 0] };
+        const updatedDatasets = prev.datasets.map((dataset) => {
+          if (dataset.label === 'GPU') {
+            return { ...dataset, data: [...dataset.data.slice(-19), info.gpu?.usage ?? 0] };
+          } else {
+            return dataset.label === 'Processor'
+              ? { ...dataset, data: [...dataset.data.slice(-19), info.processor.usage] }
+              : dataset.label === 'Memory'
+              ? { ...dataset, data: [...dataset.data.slice(-19), info.memory.usage] }
+              : { ...dataset, data: [...dataset.data.slice(-19), info.storage[0]?.usage ?? 0] };
           }
-          return dataset;
         });
 
-        // If GPU exists, push the GPU dataset, otherwise remove it
-        if (info.gpu) {
+        if (info.gpu && !prev.datasets.some((dataset) => dataset.label === 'GPU')) {
           updatedDatasets.push({
             label: 'GPU',
-            data: [...prev.datasets[2]?.data.slice(-19) ?? [], info.gpu.usage],
+            data: new Array(20).fill(0).concat(info.gpu.usage),
             borderColor: 'rgb(139, 92, 246)',
             backgroundColor: 'rgba(139, 92, 246, 0.5)',
           });
@@ -365,19 +363,22 @@ export default function SystemMonitorDashboard() {
         return { labels: [...prev.labels.slice(-19), ''], datasets: updatedDatasets };
       });
 
-      // Adjust the dataset for Temperature Chart similarly if GPU exists
       setTemperatureData((prev) => {
-        const updatedDatasets = prev.datasets.map((dataset, index) => {
-          if (index === 0) {
-            return { ...dataset, data: [...dataset.data.slice(-19), info.processor.temperature] };
+        const updatedDatasets = prev.datasets.map((dataset) => {
+          if (dataset.label === 'GPU Temperature') {
+            return { ...dataset, data: [...dataset.data.slice(-19), info.gpu?.temperature ?? 0] };
+          } else {
+            return {
+              ...dataset,
+              data: [...dataset.data.slice(-19), info.processor.temperature],
+            };
           }
-          return dataset;
         });
 
-        if (info.gpu) {
+        if (info.gpu && !prev.datasets.some((dataset) => dataset.label === 'GPU Temperature')) {
           updatedDatasets.push({
             label: 'GPU Temperature',
-            data: info.gpu.temperature ? [...prev.datasets[1]?.data.slice(-19) ?? [], info.gpu.temperature] : [],
+            data: new Array(20).fill(0).concat(info.gpu.temperature),
             borderColor: 'rgb(139, 92, 246)',
             backgroundColor: 'rgba(139, 92, 246, 0.5)',
           });
@@ -389,7 +390,7 @@ export default function SystemMonitorDashboard() {
 
     updateSystemInfo();
 
-    const interval = setInterval(updateSystemInfo, 1000); // Refresh every 1 second
+    const interval = setInterval(updateSystemInfo, 1000);
     return () => clearInterval(interval);
   }, []);
 
