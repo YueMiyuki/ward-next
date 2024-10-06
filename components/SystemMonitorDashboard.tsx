@@ -45,7 +45,7 @@ interface MemoryInfo {
   usage: number;
   available: number;
   total: number;
-  model: string;
+  model: string; // Added manufacturer and type info for memory
 }
 
 interface StorageInfo {
@@ -81,7 +81,7 @@ interface ChartData {
   }[];
 }
 
-const InfoCard = ({ title, info, color, showTemperature }: { title: string; info: ProcessorInfo | MemoryInfo; color: string; showTemperature?: boolean }) => {
+const InfoCard = ({ title, info, color, showTemperature = false }: { title: string; info: ProcessorInfo | MemoryInfo; color: string; showTemperature?: boolean}) => {
   const [showTemp, setShowTemp] = useState(showTemperature);
 
   const toggleTemp = () => setShowTemp((prev) => !prev);
@@ -91,10 +91,7 @@ const InfoCard = ({ title, info, color, showTemperature }: { title: string; info
     usageDisplay = info.usage.toString().padStart(3, '0');
   }
 
-  let availableAmount = '';
-  if ('available' in info) {
-    availableAmount = info.available.toString();
-  }
+  const availableAmount = 'available' in info ? info.available.toString() : '';
 
   const temperature = 'temperature' in info && info.temperature ? `${info.temperature}°C` : null;
 
@@ -104,9 +101,9 @@ const InfoCard = ({ title, info, color, showTemperature }: { title: string; info
         <h2 className="text-lg font-semibold mb-2" style={{ color }}>{title}</h2>
       </div>
 
-      {/* Display model for memory */}
+      {/* Handling undefined manufacturer/type gracefully */}
       {'model' in info && (
-        <p className="text-xs mb-2 opacity-70 text-gray-300">{info.model}</p>
+        <p className="text-xs mb-2 opacity-70 text-gray-300">{info.model || 'Unknown Manufacturer'} {/* Fallback */}</p>
       )}
 
       <div className="text-4xl font-bold mb-1" style={{ color }}>
@@ -121,8 +118,6 @@ const InfoCard = ({ title, info, color, showTemperature }: { title: string; info
       <p className="text-xs mb-3 opacity-70 text-gray-300">{showTemp ? 'Temperature' : `${title.toLowerCase()} usage`}</p>
 
       <div className="grid grid-cols-2 gap-2 text-center text-gray-300">
-        
-        {/* Processor-specific data (type narrowing to check for 'cores' and 'speed') */}
         {'cores' in info && 'speed' in info && (
           <>
             <div>
@@ -136,7 +131,6 @@ const InfoCard = ({ title, info, color, showTemperature }: { title: string; info
           </>
         )}
 
-        {/* Memory-specific data (type narrowing to check for 'total' and 'available') */}
         {'total' in info && 'available' in info && (
           <>
             <div>
@@ -329,7 +323,6 @@ export default function SystemMonitorDashboard() {
       { label: 'Processor', data: [], borderColor: 'rgb(59, 130, 246)', backgroundColor: 'rgba(59, 130, 246, 0.5)', hidden: false },
       { label: 'Memory', data: [], borderColor: 'rgb(239, 68, 68)', backgroundColor: 'rgba(239, 68, 68, 0.5)', hidden: false },
       { label: 'Storage', data: [], borderColor: 'rgb(16, 185, 129)', backgroundColor: 'rgba(16, 185, 129, 0.5)', hidden: true },
-      { label: 'GPU', data: [], borderColor: 'rgb(139, 92, 246)', backgroundColor: 'rgba(139, 92, 246, 0.5)', hidden: true },
     ],
   });
 
@@ -337,7 +330,6 @@ export default function SystemMonitorDashboard() {
     labels: Array(20).fill(''),
     datasets: [
       { label: 'Processor Temperature', data: [], borderColor: 'rgb(59, 130, 246)', backgroundColor: 'rgba(59, 130, 246, 0.5)' },
-      { label: 'GPU Temperature', data: [], borderColor: 'rgb(139, 92, 246)', backgroundColor: 'rgba(139, 92, 246, 0.5)' },
     ],
   });
 
@@ -347,38 +339,57 @@ export default function SystemMonitorDashboard() {
       const info: SystemInfo = await response.json();
       setSystemInfo(info);
 
-      setUtilizationData((prev) => ({
-        labels: [...prev.labels.slice(-19), ''],
-        datasets: prev.datasets.map((dataset, index) => ({
-          ...dataset,
-          data: [
-            ...dataset.data.slice(-19),
-            index === 0 ? info.processor.usage : null,
-            index === 1 ? info.memory.usage : null,
-            index === 2 ? (info.storage[0]?.usage ?? 0) : null,
-            index === 3 ? (info.gpu?.usage ?? 0) : null
-          ].filter(prop => prop != null),
-          hidden: index === 3 && !info.gpu,
-        })),
-      }));
+      // Adjust the dataset for Utilization Chart based on whether GPU exists
+      setUtilizationData((prev) => {
+        const updatedDatasets = prev.datasets.map((dataset, index) => {
+          if (index === 0) {
+            return { ...dataset, data: [...dataset.data.slice(-19), info.processor.usage] };
+          } else if (index === 1) {
+            return { ...dataset, data: [...dataset.data.slice(-19), info.memory.usage] };
+          } else if (index === 2) {
+            return { ...dataset, data: [...dataset.data.slice(-19), info.storage[0]?.usage ?? 0] };
+          }
+          return dataset;
+        });
 
-      setTemperatureData((prev) => ({
-        labels: [...prev.labels.slice(-19), ''],
-        datasets: prev.datasets.map((dataset, index) => ({
-          ...dataset,
-          data: [
-            ...dataset.data.slice(-19),
-            index === 0 ? info.processor.temperature : null,
-            index === 1 ? info.gpu?.temperature : null,
-          ].filter(prop => prop != null),
-          hidden: index === 1 && !info.gpu,
-        })),
-      }));
+        // If GPU exists, push the GPU dataset, otherwise remove it
+        if (info.gpu) {
+          updatedDatasets.push({
+            label: 'GPU',
+            data: [...prev.datasets[2]?.data.slice(-19) ?? [], info.gpu.usage],
+            borderColor: 'rgb(139, 92, 246)',
+            backgroundColor: 'rgba(139, 92, 246, 0.5)',
+          });
+        }
+
+        return { labels: [...prev.labels.slice(-19), ''], datasets: updatedDatasets };
+      });
+
+      // Adjust the dataset for Temperature Chart similarly if GPU exists
+      setTemperatureData((prev) => {
+        const updatedDatasets = prev.datasets.map((dataset, index) => {
+          if (index === 0) {
+            return { ...dataset, data: [...dataset.data.slice(-19), info.processor.temperature] };
+          }
+          return dataset;
+        });
+
+        if (info.gpu) {
+          updatedDatasets.push({
+            label: 'GPU Temperature',
+            data: info.gpu.temperature ? [...prev.datasets[1]?.data.slice(-19) ?? [], info.gpu.temperature] : [],
+            borderColor: 'rgb(139, 92, 246)',
+            backgroundColor: 'rgba(139, 92, 246, 0.5)',
+          });
+        }
+
+        return { labels: [...prev.labels.slice(-19), ''], datasets: updatedDatasets };
+      });
     };
 
     updateSystemInfo();
 
-    const interval = setInterval(updateSystemInfo, 1000);
+    const interval = setInterval(updateSystemInfo, 1000); // Refresh every 1 second
     return () => clearInterval(interval);
   }, []);
 
@@ -406,7 +417,7 @@ export default function SystemMonitorDashboard() {
     <div className="h-screen bg-gray-800 flex items-center justify-center">
       <div className="container max-w-6xl mx-auto px-6 md:px-10 py-4">
         <div className={`grid grid-cols-1 ${showGpuCard ? 'md:grid-cols-4' : 'md:grid-cols-3'} gap-x-6 gap-y-6 mb-6`}>
-          <InfoCard title="Processor" info={systemInfo.processor} color="rgb(59, 130, 246)" showTemperature />
+          <InfoCard title="Processor" info={systemInfo.processor} color="rgb(59, 130, 246)" />
           <InfoCard title="Memory" info={systemInfo.memory} color="rgb(239, 68, 68)" />
           {showGpuCard && <GPUCard gpu={systemInfo.gpu!} />}
           <StorageCardWithTabs storageData={systemInfo.storage} />
