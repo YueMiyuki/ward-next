@@ -22,7 +22,7 @@ const renderUsageWithDimming = (usage: string) => {
   return chars.map((char, index) => {
     if (leadingZero && char === '0') {
       return (
-        <span key={index} className="text-gray-500" >
+        <span key={index} className="text-gray-500">
           {char}
         </span>
       );
@@ -107,7 +107,7 @@ const InfoCard = ({ title, info, color, showTemperature = false }: { title: stri
 
       {title === 'Memory' && Array.isArray(info.model) && (
         <p className="text-xs mb-2 opacity-70 text-gray-300">
-          {Array.from(new Set(info.model)).join(', ')}
+          {Array.from(new Set(info.model)).join(', ')} 
         </p>
       )}
 
@@ -348,7 +348,7 @@ export default function SystemMonitorDashboard() {
       setUtilizationData((prev) => {
         const updatedDatasets = prev.datasets.map((dataset) => {
           if (dataset.label === 'GPU') {
-            return { ...dataset, data: [...dataset.data.slice(-19), info.gpu?.usage ?? 0] }; 
+            return { ...dataset, data: [...dataset.data.slice(-19), info.gpu?.usage ?? 0] };
           } else {
             return dataset.label === 'Processor'
               ? { ...dataset, data: [...dataset.data.slice(-19), info.processor.usage] }
@@ -382,7 +382,7 @@ export default function SystemMonitorDashboard() {
         if (info.gpu && !prev.datasets.some((dataset) => dataset.label === 'GPU Temperature')) {
           updatedDatasets.push({
             label: 'GPU Temperature',
-            data: new Array(20).fill(0).concat(info.gpu.temperature), 
+            data: new Array(20).fill(0).concat(info.gpu.temperature),
             borderColor: 'rgb(139, 92, 246)',
             backgroundColor: 'rgba(139, 92, 246, 0.5)',
           });
@@ -394,7 +394,7 @@ export default function SystemMonitorDashboard() {
 
     updateSystemInfo();
 
-    const interval = setInterval(updateSystemInfo, 1000); 
+    const interval = setInterval(updateSystemInfo, 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -422,7 +422,7 @@ export default function SystemMonitorDashboard() {
     <div className="h-screen bg-gray-800 flex items-center justify-center">
       <div className="container max-w-6xl mx-auto px-6 md:px-10 py-4">
         <div className={`grid grid-cols-1 ${showGpuCard ? 'md:grid-cols-4' : 'md:grid-cols-3'} gap-x-6 gap-y-6 mb-6`}>
-          <InfoCard title="Processor" info={systemInfo.processor} color="rgb(59, 130, 246)" />
+          <InfoCard title="Processor" info={systemInfo.processor} color="rgb(59, 130, 246)" showTemperature />
           <InfoCard title="Memory" info={systemInfo.memory} color="rgb(239, 68, 68)" />
           {showGpuCard && <GPUCard gpu={systemInfo.gpu!} />}
           <StorageCardWithTabs storageData={systemInfo.storage} />
