@@ -82,7 +82,7 @@ interface ChartData {
 }
 
 const InfoCard = ({ title, info, color, showTemperature = false }: { title: string; info: ProcessorInfo | MemoryInfo; color: string; showTemperature?: boolean }) => {
-  const [showTemp, setShowTemp] = useState(showTemperature);
+  const [showTemp, setShowTemp] = useState(false);
 
   const toggleTemp = () => setShowTemp((prev) => !prev);
 
@@ -120,7 +120,7 @@ const InfoCard = ({ title, info, color, showTemperature = false }: { title: stri
       )}
 
       <div className="text-4xl font-bold mb-1" style={{ color }}>
-        {showTemp ? temperature : (
+        {showTemp && showTemperature ? temperature : (
           <>
             {renderUsageWithDimming(usageDisplay)}
             <span>%</span>
@@ -128,7 +128,7 @@ const InfoCard = ({ title, info, color, showTemperature = false }: { title: stri
         )}
       </div>
 
-      <p className="text-xs mb-3 opacity-70 text-gray-300">{showTemp ? 'Temperature' : `${title.toLowerCase()} usage`}</p>
+      <p className="text-xs mb-3 opacity-70 text-gray-300">{showTemp && showTemperature ? 'Temperature' : `${title.toLowerCase()} usage`}</p>
 
       <div className="grid grid-cols-2 gap-2 text-center text-gray-300">
         
