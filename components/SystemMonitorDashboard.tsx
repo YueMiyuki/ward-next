@@ -1,4 +1,4 @@
-'use client';
+"use client"
 
 import React, { useState, useEffect } from 'react';
 import { Line } from 'react-chartjs-2';
@@ -96,9 +96,17 @@ const InfoCard = ({ title, info, color, showTemperature = false }: { title: stri
   const temperature = 'temperature' in info && info.temperature ? `${info.temperature}°C` : null;
 
   return (
-    <div className="bg-gray-900 rounded-lg shadow-md p-4 w-full h-full relative">
-      <div className="flex flex-row justify-between items-center">
-        <h2 className="text-lg font-semibold mb-2" style={{ color }}>{title}</h2>
+    <div className="bg-gray-900 rounded-lg shadow-lg p-4 w-full h-full relative animate-fadeIn">
+      <div className="flex justify-between items-center mb-2">
+        <h2 className="text-lg font-semibold" style={{ color }}>{title}</h2>
+        {showTemperature && (
+          <button
+            onClick={toggleTemp}
+            className="p-2 bg-gray-700 text-white rounded-full transition transform hover:bg-gray-600 hover:scale-105"
+          >
+            {showTemp ? <BarChart2 size={16} /> : <Thermometer size={16} />}
+          </button>
+        )}
       </div>
 
       {'model' in info && title === 'Processor' && (
@@ -150,15 +158,6 @@ const InfoCard = ({ title, info, color, showTemperature = false }: { title: stri
           </>
         )}
       </div>
-
-      {showTemperature && (
-        <button
-          onClick={toggleTemp}
-          className="absolute top-4 right-4 p-2 bg-gray-700 text-white rounded-full transition transform hover:bg-gray-600 hover:scale-105"
-        >
-          {showTemp ? <BarChart2 size={16} /> : <Thermometer size={16} />}
-        </button>
-      )}
     </div>
   );
 };
@@ -170,9 +169,9 @@ const GPUCard = ({ gpu }: { gpu: GpuInfo }) => {
   const usageDisplay = gpu.usage.toString().padStart(3, '0');
 
   return (
-    <div className="bg-gray-900 rounded-lg shadow-md p-4 w-full h-full relative transform transition-transform hover:shadow-2xl">
-      <div className="flex flex-row justify-between items-center">
-        <h2 className="text-lg font-semibold mb-2 text-purple-400">GPU</h2>
+    <div className="bg-gray-900 rounded-lg shadow-lg p-4 w-full h-full relative animate-fadeIn">
+      <div className="flex justify-between items-center mb-2">
+        <h2 className="text-lg font-semibold text-purple-400">GPU</h2>
         <button
           onClick={toggleTemp}
           className="p-2 bg-gray-700 text-white rounded-full transition transform hover:bg-gray-600 hover:scale-105"
@@ -216,7 +215,7 @@ const StorageCardWithTabs = ({ storageData }: { storageData: StorageInfo[] }) =>
   const usage = storage.usage !== undefined ? storage.usage.toString().padStart(3, '0') : '000';
 
   return (
-    <div className="bg-gray-900 rounded-lg shadow-md p-4 w-full h-full relative transform transition-transform hover:shadow-2xl">
+    <div className="bg-gray-900 rounded-lg shadow-lg p-4 w-full h-full relative animate-fadeIn">
       <h2 className="text-lg font-semibold mb-2 text-green-400">Storage</h2>
 
       <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
@@ -264,7 +263,7 @@ const UtilizationChart = ({ utilizationData, temperatureData }: { utilizationDat
   const [isTempView, setIsTempView] = useState(false);
 
   return (
-    <div className="bg-gray-900 rounded-lg shadow-md p-4 h-full min-h-[200px] flex flex-col justify-center items-center transform transition-transform">
+    <div className="bg-gray-900 rounded-lg shadow-lg p-4 h-full min-h-[200px] flex flex-col justify-center items-center animate-fadeIn">
       <div className="flex justify-between items-center w-full mb-2">
         <h2 className="text-lg font-semibold text-white">% {isTempView ? 'Temperature' : 'Utilization'}</h2>
         <button
@@ -304,7 +303,7 @@ const UtilizationChart = ({ utilizationData, temperatureData }: { utilizationDat
 
 const WARD = ({ uptime }: { uptime: { days: number; hours: number; minutes: number; seconds: number } }) => {
   return (
-    <div className="bg-gray-900 rounded-lg shadow-md p-4 w-full h-full min-h-[200px] flex flex-col justify-center items-center text-center transform transition-transform">
+    <div className="bg-gray-900 rounded-lg shadow-lg p-4 w-full h-full min-h-[200px] flex flex-col justify-center items-center text-center animate-fadeIn">
       <h2 className="text-lg font-semibold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500">
         W.A.R.D
       </h2>
@@ -410,7 +409,7 @@ export default function SystemMonitorDashboard() {
   if (!systemInfo) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="text-2xl text-gray-300">Loading...</div>
+        <div className="text-2xl text-gray-300 animate-pulse">Loading...</div>
       </div>
     );
   }
@@ -420,7 +419,7 @@ export default function SystemMonitorDashboard() {
 
   return (
     <div className="h-screen bg-gray-800 flex items-center justify-center">
-      <div className="container max-w-6xl mx-auto px-6 md:px-10 py-4">
+      <div className="container max-w-6xl mx-auto px-6 md:px-10 py-4 animate-fadeIn">
         <div className={`grid grid-cols-1 ${showGpuCard ? 'md:grid-cols-4' : 'md:grid-cols-3'} gap-x-6 gap-y-6 mb-6`}>
           <InfoCard title="Processor" info={systemInfo.processor} color="rgb(59, 130, 246)" showTemperature />
           <InfoCard title="Memory" info={systemInfo.memory} color="rgb(239, 68, 68)" />
