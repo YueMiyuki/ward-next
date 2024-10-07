@@ -13,61 +13,17 @@ import {
   Legend,
 } from 'chart.js';
 import { ChevronLeft, ChevronRight, Thermometer, BarChart2, Sun, Moon } from 'lucide-react';
+import {
+  ProcessorInfo,
+  MemoryInfo,
+  GpuInfo,
+  StorageInfo,
+  SystemInfo,
+  ChartData,
+  ThemeToggleProps
+} from '../types'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
-
-interface ProcessorInfo {
-  model: string;
-  cores: number;
-  speed: string;
-  usage: number;
-  temperature: number;
-}
-
-interface MemoryInfo {
-  total: number;
-  available: number;
-  usage: number;
-  model: string[];
-}
-
-interface GpuInfo {
-  model: string;
-  usage: number;
-  temperature: number;
-  vram: number;
-  vramUsed: number;
-}
-
-interface StorageInfo {
-  total: number;
-  free: number;
-  usage: number;
-}
-
-interface SystemInfo {
-  processor: ProcessorInfo;
-  memory: MemoryInfo;
-  gpu: GpuInfo | null;
-  storage: StorageInfo[];
-  uptime: number;
-}
-
-interface ChartData {
-  labels: string[];
-  datasets: {
-    label: string;
-    data: number[];
-    borderColor: string;
-    backgroundColor: string;
-    hidden?: boolean;
-  }[];
-}
-
-interface ThemeToggleProps {
-  isDark: boolean;
-  toggleTheme: () => void;
-}
 
 const ThemeToggle: React.FC<ThemeToggleProps> = ({ isDark, toggleTheme }) => {
   return (
@@ -77,40 +33,40 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({ isDark, toggleTheme }) => {
     >
       {isDark ? <Sun size={24} /> : <Moon size={24} />}
     </button>
-  );
-};
+  )
+}
 
 const renderUsageWithDimming = (usage: string) => {
-  const chars = usage.split('');
-  let leadingZero = true;
+  const chars = usage.split('')
+  let leadingZero = true
   return chars.map((char, index) => {
     if (leadingZero && char === '0') {
       return (
         <span key={index} className="text-gray-400 dark:text-gray-500">
           {char}
         </span>
-      );
+      )
     } else {
-      leadingZero = false;
-      return <span key={index}>{char}</span>;
+      leadingZero = false
+      return <span key={index}>{char}</span>
     }
-  });
-};
+  })
+}
 
 const InfoCard = ({ title, info, color, showTemperature = false }: { title: string; info: ProcessorInfo | MemoryInfo; color: string; showTemperature?: boolean }) => {
-  const [showTemp, setShowTemp] = useState(false);
+  const [showTemp, setShowTemp] = useState(false)
 
-  const toggleTemp = () => setShowTemp((prev) => !prev);
+  const toggleTemp = () => setShowTemp((prev) => !prev)
 
-  let usageDisplay = '';
+  let usageDisplay = ''
   if ('usage' in info) {
-    usageDisplay = info.usage.toString().padStart(3, '0');
+    usageDisplay = info.usage.toString().padStart(3, '0')
   }
   
-  const availableAmount = 'available' in info ? info.available.toString() : '';
+  const availableAmount = 'available' in info ? info.available.toString() : ''
 
-  const temperature = 'temperature' in info && info.temperature ? `${info.temperature}°C` : null;
-
+  const temperature = 'temperature' in info && info.temperature ? `${info.temperature}°C` : null
+  
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 w-full h-full relative animate-fadeIn">
       <div className="flex justify-between items-center mb-2">
@@ -175,14 +131,14 @@ const InfoCard = ({ title, info, color, showTemperature = false }: { title: stri
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
 const GPUCard = ({ gpu }: { gpu: GpuInfo }) => {
-  const [showTemp, setShowTemp] = useState(false);
+  const [showTemp, setShowTemp] = useState(false)
 
-  const toggleTemp = () => setShowTemp((prev) => !prev);
-  const usageDisplay = gpu.usage.toString().padStart(3, '0');
+  const toggleTemp = () => setShowTemp((prev) => !prev)
+  const usageDisplay = gpu.usage.toString().padStart(3, '0')
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 w-full h-full relative animate-fadeIn">
@@ -217,18 +173,18 @@ const GPUCard = ({ gpu }: { gpu: GpuInfo }) => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
 const StorageCardWithTabs = ({ storageData }: { storageData: StorageInfo[] }) => {
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTab] = useState(0)
   const changeTab = (direction: number) => {
-    setActiveTab((prev) => (prev + direction + storageData.length) % storageData.length);
-  };
+    setActiveTab((prev) => (prev + direction + storageData.length) % storageData.length)
+  }
 
-  const storage = storageData[activeTab];
-  const freePercentage = storage.total ? Math.round((storage.free / storage.total) * 100) : 0;
-  const usage = storage.usage !== undefined ? storage.usage.toString().padStart(3, '0') : '000';
+  const storage = storageData[activeTab]
+  const freePercentage = storage.total ? Math.round((storage.free / storage.total) * 100) : 0
+  const usage = storage.usage !== undefined ? storage.usage.toString().padStart(3, '0') : '000'
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 w-full h-full relative animate-fadeIn">
@@ -272,11 +228,11 @@ const StorageCardWithTabs = ({ storageData }: { storageData: StorageInfo[] }) =>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
 const UtilizationChart = ({ utilizationData, temperatureData }: { utilizationData: ChartData; temperatureData: ChartData }) => {
-  const [isTempView, setIsTempView] = useState(false);
+  const [isTempView, setIsTempView] = useState(false)
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 h-full min-h-[200px] flex flex-col justify-center items-center animate-fadeIn">
@@ -333,8 +289,8 @@ const UtilizationChart = ({ utilizationData, temperatureData }: { utilizationDat
         />
       </div>
     </div>
-  );
-};
+  )
+}
 
 const WARD = ({ uptime }: { uptime: { days: number; hours: number; minutes: number; seconds: number } }) => {
   return (
@@ -346,18 +302,33 @@ const WARD = ({ uptime }: { uptime: { days: number; hours: number; minutes: numb
       <div className="grid grid-cols-4 gap-4 w-full justify-center items-center mb-2">
         {Object.entries(uptime).map(([label, value], index) => (
           <div key={index} className="bg-gray-100 dark:bg-gray-700 p-3 rounded text-center shadow-md flex flex-col justify-center items-center">
-            <div className="text-2xl font-bold text-gray-800 dark:text-gray-200">{String(value).padStart(2, '0')}</div>
+            <div className="text-2xl font-bol
+d text-gray-800 dark:text-gray-200">{String(value).padStart(2, '0')}</div>
             <div className="text-xs opacity-70 text-gray-600 dark:text-gray-400">{label.toUpperCase()}</div>
           </div>
         ))}
       </div>
     </div>
-  );
-};
+  )
+}
+
+const LoadingScreen = ({ isDarkMode }: { isDarkMode: boolean }) => {
+  return (
+    <div className={`flex flex-col items-center justify-center h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'} transition-colors duration-300`}>
+      <div className={`w-16 h-16 mb-4 border-t-4 ${isDarkMode ? 'border-blue-400' : 'border-blue-500'} rounded-full animate-spin`}></div>
+      <div className={`text-2xl ${isDarkMode ? 'text-gray-200' : 'text-gray-800'} font-semibold mb-2 transition-colors duration-300`}>Loading System Info</div>
+      <div className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'} transition-colors duration-300`}>
+        <span className="inline-block animate-bounce">.</span>
+        <span className="inline-block animate-bounce" style={{ animationDelay: '0.2s' }}>.</span>
+        <span className="inline-block animate-bounce" style={{ animationDelay: '0.4s' }}>.</span>
+      </div>
+    </div>
+  )
+}
 
 export default function SystemMonitorDashboard() {
-  const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null)
+  const [isDarkMode, setIsDarkMode] = useState(false)
   const [utilizationData, setUtilizationData] = useState<ChartData>({
     labels: Array(20).fill(''),
     datasets: [
@@ -365,33 +336,33 @@ export default function SystemMonitorDashboard() {
       { label: 'Memory', data: [], borderColor: 'rgb(239, 68, 68)', backgroundColor: 'rgba(239, 68, 68, 0.5)', hidden: false },
       { label: 'Storage', data: [], borderColor: 'rgb(16, 185, 129)', backgroundColor: 'rgba(16, 185, 129, 0.5)', hidden: true },
     ],
-  });
+  })
 
   const [temperatureData, setTemperatureData] = useState<ChartData>({
     labels: Array(20).fill(''),
     datasets: [
       { label: 'Processor Temperature', data: [], borderColor: 'rgb(59, 130, 246)', backgroundColor: 'rgba(59, 130, 246, 0.5)' },
     ],
-  });
+  })
 
   useEffect(() => {
     const updateSystemInfo = async () => {
-      const response = await fetch('/api/system-info');
-      const info: SystemInfo = await response.json();
-      setSystemInfo(info);
+      const response = await fetch('/api/system-info')
+      const info: SystemInfo = await response.json()
+      setSystemInfo(info)
 
       setUtilizationData((prev) => {
         const updatedDatasets = prev.datasets.map((dataset) => {
           if (dataset.label === 'GPU') {
-            return { ...dataset, data: [...dataset.data.slice(-19), info.gpu?.usage ?? 0] };
+            return { ...dataset, data: [...dataset.data.slice(-19), info.gpu?.usage ?? 0] }
           } else {
             return dataset.label === 'Processor'
               ? { ...dataset, data: [...dataset.data.slice(-19), info.processor.usage] }
               : dataset.label === 'Memory'
               ? { ...dataset, data: [...dataset.data.slice(-19), info.memory.usage] }
-              : { ...dataset, data: [...dataset.data.slice(-19), info.storage[0]?.usage ?? 0] };
+              : { ...dataset, data: [...dataset.data.slice(-19), info.storage[0]?.usage ?? 0] }
           }
-        });
+        })
 
         if (info.gpu && !prev.datasets.some((dataset) => dataset.label === 'GPU')) {
           updatedDatasets.push({
@@ -399,20 +370,20 @@ export default function SystemMonitorDashboard() {
             data: new Array(20).fill(0).concat(info.gpu.usage),
             borderColor: 'rgb(139, 92, 246)',
             backgroundColor: 'rgba(139, 92, 246, 0.5)',
-          });
+          })
         }
 
-        return { labels: [...prev.labels.slice(-19), ''], datasets: updatedDatasets };
-      });
+        return { labels: [...prev.labels.slice(-19), ''], datasets: updatedDatasets }
+      })
 
       setTemperatureData((prev) => {
         const updatedDatasets = prev.datasets.map((dataset) => {
           if (dataset.label === 'GPU Temperature') {
-            return { ...dataset, data: [...dataset.data.slice(-19), info.gpu?.temperature ?? 0] };
+            return { ...dataset, data: [...dataset.data.slice(-19), info.gpu?.temperature ?? 0] }
           } else {
-            return { ...dataset, data: [...dataset.data.slice(-19), info.processor.temperature] };
+            return { ...dataset, data: [...dataset.data.slice(-19), info.processor.temperature] }
           }
-        });
+        })
 
         if (info.gpu && !prev.datasets.some((dataset) => dataset.label === 'GPU Temperature')) {
           updatedDatasets.push({
@@ -420,62 +391,63 @@ export default function SystemMonitorDashboard() {
             data: new Array(20).fill(0).concat(info.gpu.temperature),
             borderColor: 'rgb(139, 92, 246)',
             backgroundColor: 'rgba(139, 92, 246, 0.5)',
-          });
+          })
         }
 
-        return { labels: [...prev.labels.slice(-19), ''], datasets: updatedDatasets };
-      });
-    };
+        return { labels: [...prev.labels.slice(-19), ''], datasets: updatedDatasets }
+      })
+    }
 
-    updateSystemInfo();
+    updateSystemInfo()
 
-    const interval = setInterval(updateSystemInfo, 1000);
-    return () => clearInterval(interval);
-  }, []);
+    const interval = setInterval(updateSystemInfo, 1000)
+    return () => clearInterval(interval)
+  }, [])
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-      setIsDarkMode(true);
-      document.documentElement.classList.add('dark');
+    const savedTheme = localStorage.getItem('theme')
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+      setIsDarkMode(true)
+      document.documentElement.classList.add('dark')
+    } else {
+      setIsDarkMode(false)
+      document.documentElement.classList.remove('dark')
     }
-  }, []);
+  }, [])
 
   const toggleTheme = () => {
     setIsDarkMode((prev) => {
-      const newTheme = !prev;
-      localStorage.setItem('theme', newTheme ? 'dark' : 'light');
+      const newTheme = !prev
+      localStorage.setItem('theme', newTheme ? 'dark' : 'light')
       if (newTheme) {
-        document.documentElement.classList.add('dark');
+        document.documentElement.classList.add('dark')
       } else {
-        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.remove('dark')
       }
-      return newTheme;
-    });
-  };
-
-  const formatUptime = (seconds: number) => {
-    const days = Math.floor(seconds / (3600 * 24));
-    const hours = Math.floor((seconds % (3600 * 24)) / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-
-    return { days, hours, minutes, seconds: remainingSeconds };
-  };
-
-  if (!systemInfo) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-gray-100 dark:bg-gray-900">
-        <div className="text-2xl text-gray-800 dark:text-gray-200 animate-pulse">Loading...</div>
-      </div>
-    );
+      return newTheme
+    })
   }
 
-  const uptime = formatUptime(systemInfo.uptime);
-  const showGpuCard = systemInfo.gpu !== null;
+  const formatUptime = (seconds: number) => {
+    const days = Math.floor(seconds / (3600 * 24))
+    const hours = Math.floor((seconds % (3600 * 24)) / 3600)
+    const minutes = Math.floor((seconds % 3600) / 60)
+    const remainingSeconds = Math.floor(seconds % 60)
+
+    return { days, hours, minutes, seconds: remainingSeconds }
+  }
+
+  if (!systemInfo) {
+    return <LoadingScreen isDarkMode={isDarkMode} />
+  }
+
+  const uptime = formatUptime(systemInfo.uptime)
+  const showGpuCard = systemInfo.gpu !== null
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-200 flex justify-center items-center">
+    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'} transition-colors duration-300 flex justify-center items-center`}>
       <ThemeToggle isDark={isDarkMode} toggleTheme={toggleTheme} />
       <div className="container max-w-4xl mx-auto px-4 py-8 animate-fadeIn">
         <div className={`grid grid-cols-1 ${showGpuCard ? 'md:grid-cols-4' : 'md:grid-cols-3'} gap-4 mb-4`}>
@@ -491,5 +463,5 @@ export default function SystemMonitorDashboard() {
         </div>
       </div>
     </div>
-  );
+  )
 }
