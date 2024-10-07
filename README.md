@@ -3,7 +3,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 ---
 ### Ward Dashboard
 
-> [![ward](https://github-readme-stats.vercel.app/api/pin/?username=YueMiyuki&repo=ward-next&show_icons=true&bg_color=23272A&title_color=FF73F1&text_color=FFC0CB&icon_color=9B84EE&count_private=true&border_color=fAA61A&border_radius=10)](https://github.com/YueMiyuki/ward-next)  
+> [![ward](https://miyuki-github.vercel.app/api/pin/?username=YueMiyuki&repo=ward-next&show_icons=true&bg_color=23272A&title_color=FF73F1&text_color=FFC0CB&icon_color=9B84EE&count_private=true&border_color=fAA61A&border_radius=10)](https://github.com/YueMiyuki/ward-next)  
 > ![CodeFactor](https://img.shields.io/codefactor/grade/github/YueMiyuki/ward-next?style=for-the-badge&logo=codefactor) ![commit](https://img.shields.io/github/last-commit/YueMiyuki/ward-next?color=%23181717&logo=GitHub&style=for-the-badge)  
 > [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/D1D4AMI3T)   
 > [Original work](https://github.com/B-Software/Ward)  
