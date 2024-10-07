@@ -8,7 +8,11 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 > [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/D1D4AMI3T)   
 > [Original work](https://github.com/B-Software/Ward)  
 
-This project is a modern build of [Ward Dashboard](https://github.com/B-Software/Ward) built with NextJS.
+This project is a modern build of [Ward Dashboard](https://github.com/B-Software/Ward) built with NextJS.  
+---
+## Preview
+![image](https://github.com/user-attachments/assets/35d6d501-3b3b-4095-af2b-42cd97c4e7ad)
+![image](https://github.com/user-attachments/assets/eac3fbfe-9e7c-4ef3-bf60-aff2a0a64e81)
 
 ---
 ## Getting Started
