@@ -21,7 +21,7 @@ import {
   SystemInfo,
   ChartData,
   ThemeToggleProps
-} from '../types'
+} from '@/types'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -66,7 +66,7 @@ const InfoCard = ({ title, info, color, showTemperature = false }: { title: stri
   const availableAmount = 'available' in info ? info.available.toString() : ''
 
   const temperature = 'temperature' in info && info.temperature ? `${info.temperature}°C` : null
-  
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 w-full h-full relative animate-fadeIn">
       <div className="flex justify-between items-center mb-2">
