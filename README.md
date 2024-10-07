@@ -11,8 +11,17 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 This project is a modern build of [Ward Dashboard](https://github.com/B-Software/Ward) built with NextJS.  
 ---
 ## Preview
-![image](https://github.com/user-attachments/assets/35d6d501-3b3b-4095-af2b-42cd97c4e7ad)
-![image](https://github.com/user-attachments/assets/eac3fbfe-9e7c-4ef3-bf60-aff2a0a64e81)
+<details>
+<summary>🌙 Dark mode</summary>
+<br>
+<img src="https://github.com/user-attachments/assets/efcfe4e7-e1cf-4ce6-9cb4-e9694a9fc60d">
+</details>
+
+<details>
+<summary>☀️ Light mode</summary>
+<br>
+<img src="https://github.com/user-attachments/assets/eac3fbfe-9e7c-4ef3-bf60-aff2a0a64e81">
+</details>
 
 ---
 ## Getting Started
