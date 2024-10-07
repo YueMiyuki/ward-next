@@ -12,62 +12,45 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import { ChevronLeft, ChevronRight, Thermometer, BarChart2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Thermometer, BarChart2, Sun, Moon } from 'lucide-react';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-const renderUsageWithDimming = (usage: string) => {
-  const chars = usage.split('');
-  let leadingZero = true;
-  return chars.map((char, index) => {
-    if (leadingZero && char === '0') {
-      return (
-        <span key={index} className="text-gray-500">
-          {char}
-        </span>
-      );
-    } else {
-      leadingZero = false;
-      return <span key={index}>{char}</span>;
-    }
-  });
-};
-
 interface ProcessorInfo {
-  usage: number;
   model: string;
   cores: number;
   speed: string;
+  usage: number;
   temperature: number;
 }
 
 interface MemoryInfo {
-  usage: number;
-  available: number;
   total: number;
+  available: number;
+  usage: number;
   model: string[];
 }
 
-interface StorageInfo {
-  usage: number;
-  total: number;
-  free: number;
-}
-
 interface GpuInfo {
-  usage: number;
   model: string;
+  usage: number;
   temperature: number;
   vram: number;
   vramUsed: number;
 }
 
+interface StorageInfo {
+  total: number;
+  free: number;
+  usage: number;
+}
+
 interface SystemInfo {
   processor: ProcessorInfo;
   memory: MemoryInfo;
+  gpu: GpuInfo | null;
   storage: StorageInfo[];
   uptime: number;
-  gpu: GpuInfo | null;
 }
 
 interface ChartData {
@@ -80,6 +63,39 @@ interface ChartData {
     hidden?: boolean;
   }[];
 }
+
+interface ThemeToggleProps {
+  isDark: boolean;
+  toggleTheme: () => void;
+}
+
+const ThemeToggle: React.FC<ThemeToggleProps> = ({ isDark, toggleTheme }) => {
+  return (
+    <button
+      onClick={toggleTheme}
+      className="fixed top-4 right-4 p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 transition-colors duration-200 z-10"
+    >
+      {isDark ? <Sun size={24} /> : <Moon size={24} />}
+    </button>
+  );
+};
+
+const renderUsageWithDimming = (usage: string) => {
+  const chars = usage.split('');
+  let leadingZero = true;
+  return chars.map((char, index) => {
+    if (leadingZero && char === '0') {
+      return (
+        <span key={index} className="text-gray-400 dark:text-gray-500">
+          {char}
+        </span>
+      );
+    } else {
+      leadingZero = false;
+      return <span key={index}>{char}</span>;
+    }
+  });
+};
 
 const InfoCard = ({ title, info, color, showTemperature = false }: { title: string; info: ProcessorInfo | MemoryInfo; color: string; showTemperature?: boolean }) => {
   const [showTemp, setShowTemp] = useState(false);
@@ -96,13 +112,13 @@ const InfoCard = ({ title, info, color, showTemperature = false }: { title: stri
   const temperature = 'temperature' in info && info.temperature ? `${info.temperature}°C` : null;
 
   return (
-    <div className="bg-gray-900 rounded-lg shadow-lg p-4 w-full h-full relative animate-fadeIn">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 w-full h-full relative animate-fadeIn">
       <div className="flex justify-between items-center mb-2">
-        <h2 className="text-lg font-semibold" style={{ color }}>{title}</h2>
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200" style={{ color }}>{title}</h2>
         {showTemperature && (
           <button
             onClick={toggleTemp}
-            className="p-2 bg-gray-700 text-white rounded-full transition transform hover:bg-gray-600 hover:scale-105"
+            className="p-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-full transition transform hover:bg-gray-300 dark:hover:bg-gray-600 hover:scale-105"
           >
             {showTemp ? <BarChart2 size={16} /> : <Thermometer size={16} />}
           </button>
@@ -110,16 +126,16 @@ const InfoCard = ({ title, info, color, showTemperature = false }: { title: stri
       </div>
 
       {'model' in info && title === 'Processor' && (
-        <p className="text-xs mb-2 opacity-70 text-gray-300">{info.model}</p>
+        <p className="text-xs mb-2 opacity-70 text-gray-600 dark:text-gray-400">{info.model}</p>
       )}
 
       {title === 'Memory' && Array.isArray(info.model) && (
-        <p className="text-xs mb-2 opacity-70 text-gray-300">
+        <p className="text-xs mb-2 opacity-70 text-gray-600 dark:text-gray-400">
           {Array.from(new Set(info.model)).join(', ')} 
         </p>
       )}
 
-      <div className="text-4xl font-bold mb-1" style={{ color }}>
+      <div className="text-4xl font-bold mb-1 text-gray-800 dark:text-gray-200" style={{ color }}>
         {showTemp && showTemperature ? temperature : (
           <>
             {renderUsageWithDimming(usageDisplay)}
@@ -128,9 +144,9 @@ const InfoCard = ({ title, info, color, showTemperature = false }: { title: stri
         )}
       </div>
 
-      <p className="text-xs mb-3 opacity-70 text-gray-300">{showTemp && showTemperature ? 'Temperature' : `${title.toLowerCase()} usage`}</p>
+      <p className="text-xs mb-3 opacity-70 text-gray-600 dark:text-gray-400">{showTemp && showTemperature ? 'Temperature' : `${title.toLowerCase()} usage`}</p>
 
-      <div className="grid grid-cols-2 gap-2 text-center text-gray-300">
+      <div className="grid grid-cols-2 gap-2 text-center text-gray-800 dark:text-gray-200">
         
         {'cores' in info && 'speed' in info && (
           <>
@@ -169,19 +185,19 @@ const GPUCard = ({ gpu }: { gpu: GpuInfo }) => {
   const usageDisplay = gpu.usage.toString().padStart(3, '0');
 
   return (
-    <div className="bg-gray-900 rounded-lg shadow-lg p-4 w-full h-full relative animate-fadeIn">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 w-full h-full relative animate-fadeIn">
       <div className="flex justify-between items-center mb-2">
-        <h2 className="text-lg font-semibold text-purple-400">GPU</h2>
+        <h2 className="text-lg font-semibold text-purple-600 dark:text-purple-400">GPU</h2>
         <button
           onClick={toggleTemp}
-          className="p-2 bg-gray-700 text-white rounded-full transition transform hover:bg-gray-600 hover:scale-105"
+          className="p-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-full transition transform hover:bg-gray-300 dark:hover:bg-gray-600 hover:scale-105"
         >
           {showTemp ? <BarChart2 size={16} /> : <Thermometer size={16} />}
         </button>
       </div>
 
-      <p className="text-xs mb-2 opacity-70 text-gray-300">{gpu.model}</p>
-      <div className="text-4xl font-bold mb-1 text-purple-400">
+      <p className="text-xs mb-2 opacity-70 text-gray-600 dark:text-gray-400">{gpu.model}</p>
+      <div className="text-4xl font-bold mb-1 text-purple-600 dark:text-purple-400">
         {!showTemp ? (
           <>
             {renderUsageWithDimming(usageDisplay)}
@@ -189,8 +205,8 @@ const GPUCard = ({ gpu }: { gpu: GpuInfo }) => {
           </>
         ) : `${gpu.temperature}°C`}
       </div>
-      <p className="text-xs mb-3 opacity-70">{showTemp ? 'GPU Temperature' : 'GPU Usage'}</p>
-      <div className="grid grid-cols-2 gap-2 text-center text-gray-300">
+      <p className="text-xs mb-3 opacity-70 text-gray-600 dark:text-gray-400">{showTemp ? 'GPU Temperature' : 'GPU Usage'}</p>
+      <div className="grid grid-cols-2 gap-2 text-center text-gray-800 dark:text-gray-200">
         <div>
           <p className="text-sm font-semibold">{gpu.vramUsed} GB</p>
           <p className="text-xs opacity-70">VRAM Used</p>
@@ -215,13 +231,13 @@ const StorageCardWithTabs = ({ storageData }: { storageData: StorageInfo[] }) =>
   const usage = storage.usage !== undefined ? storage.usage.toString().padStart(3, '0') : '000';
 
   return (
-    <div className="bg-gray-900 rounded-lg shadow-lg p-4 w-full h-full relative animate-fadeIn">
-      <h2 className="text-lg font-semibold mb-2 text-green-400">Storage</h2>
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 w-full h-full relative animate-fadeIn">
+      <h2 className="text-lg font-semibold mb-2 text-green-600 dark:text-green-400">Storage</h2>
 
       <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
         <button
           onClick={() => changeTab(-1)}
-          className="p-2 bg-gray-700 text-white rounded-full hover:bg-gray-600 transition transform hover:scale-105"
+          className="p-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition transform hover:scale-105"
         >
           <ChevronLeft size={20} />
         </button>
@@ -230,15 +246,15 @@ const StorageCardWithTabs = ({ storageData }: { storageData: StorageInfo[] }) =>
       <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
         <button
           onClick={() => changeTab(1)}
-          className="p-2 bg-gray-700 text-white rounded-full hover:bg-gray-600 transition transform hover:scale-105"
+          className="p-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition transform hover:scale-105"
         >
           <ChevronRight size={20} />
         </button>
       </div>
 
-      <div className="text-center text-gray-300">
+      <div className="text-center text-gray-800 dark:text-gray-200">
         <p className="text-xs mb-2 opacity-70">{storage.total} GB Total</p>
-        <div className="text-4xl font-bold mb-1 text-green-400">
+        <div className="text-4xl font-bold mb-1 text-green-600 dark:text-green-400">
           {renderUsageWithDimming(usage)}
           <span>%</span>
         </div>
@@ -263,12 +279,12 @@ const UtilizationChart = ({ utilizationData, temperatureData }: { utilizationDat
   const [isTempView, setIsTempView] = useState(false);
 
   return (
-    <div className="bg-gray-900 rounded-lg shadow-lg p-4 h-full min-h-[200px] flex flex-col justify-center items-center animate-fadeIn">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 h-full min-h-[200px] flex flex-col justify-center items-center animate-fadeIn">
       <div className="flex justify-between items-center w-full mb-2">
-        <h2 className="text-lg font-semibold text-white">% {isTempView ? 'Temperature' : 'Utilization'}</h2>
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">% {isTempView ? 'Temperature' : 'Utilization'}</h2>
         <button
           onClick={() => setIsTempView(!isTempView)}
-          className="p-2 bg-gray-700 text-white rounded-full transition transform hover:bg-gray-600 hover:scale-105"
+          className="p-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-full transition transform hover:bg-gray-300 dark:hover:bg-gray-600 hover:scale-105"
         >
           {isTempView ? <BarChart2 size={16} /> : <Thermometer size={16} />}
         </button>
@@ -286,13 +302,21 @@ const UtilizationChart = ({ utilizationData, temperatureData }: { utilizationDat
                 max: isTempView ? undefined : 100,
                 ticks: {
                   stepSize: isTempView ? undefined : 10,
-                  maxTicksLimit: 11
+                  maxTicksLimit: 11,
+                  color: 'rgb(156, 163, 175)',
                 }
               },
               x: { display: false }
             },
             plugins: {
-              legend: { position: 'top', labels: { usePointStyle: true, pointStyle: 'line' } }
+              legend: { 
+                position: 'top',
+                labels: { 
+                  usePointStyle: true,
+                  pointStyle: 'line',
+                  color: 'rgb(156, 163, 175)',
+                }
+              }
             }
           }}
         />
@@ -303,16 +327,16 @@ const UtilizationChart = ({ utilizationData, temperatureData }: { utilizationDat
 
 const WARD = ({ uptime }: { uptime: { days: number; hours: number; minutes: number; seconds: number } }) => {
   return (
-    <div className="bg-gray-900 rounded-lg shadow-lg p-4 w-full h-full min-h-[200px] flex flex-col justify-center items-center text-center animate-fadeIn">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 w-full h-full min-h-[200px] flex flex-col justify-center items-center text-center animate-fadeIn">
       <h2 className="text-lg font-semibold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500">
         W.A.R.D
       </h2>
 
       <div className="grid grid-cols-4 gap-4 w-full justify-center items-center mb-2">
         {Object.entries(uptime).map(([label, value], index) => (
-          <div key={index} className="bg-gray-800 p-3 rounded text-center shadow-md flex flex-col justify-center items-center">
-            <div className="text-2xl font-bold text-white">{String(value).padStart(2, '0')}</div>
-            <div className="text-xs opacity-70 text-gray-300">{label.toUpperCase()}</div>
+          <div key={index} className="bg-gray-100 dark:bg-gray-700 p-3 rounded text-center shadow-md flex flex-col justify-center items-center">
+            <div className="text-2xl font-bold text-gray-800 dark:text-gray-200">{String(value).padStart(2, '0')}</div>
+            <div className="text-xs opacity-70 text-gray-600 dark:text-gray-400">{label.toUpperCase()}</div>
           </div>
         ))}
       </div>
@@ -322,6 +346,7 @@ const WARD = ({ uptime }: { uptime: { days: number; hours: number; minutes: numb
 
 export default function SystemMonitorDashboard() {
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const [utilizationData, setUtilizationData] = useState<ChartData>({
     labels: Array(20).fill(''),
     datasets: [
@@ -397,6 +422,27 @@ export default function SystemMonitorDashboard() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      setIsDarkMode(true);
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    setIsDarkMode((prev) => {
+      const newTheme = !prev;
+      localStorage.setItem('theme', newTheme ? 'dark' : 'light');
+      if (newTheme) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      return newTheme;
+    });
+  };
+
   const formatUptime = (seconds: number) => {
     const days = Math.floor(seconds / (3600 * 24));
     const hours = Math.floor((seconds % (3600 * 24)) / 3600);
@@ -408,8 +454,8 @@ export default function SystemMonitorDashboard() {
 
   if (!systemInfo) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-2xl text-gray-300 animate-pulse">Loading...</div>
+      <div className="flex items-center justify-center h-screen bg-gray-100 dark:bg-gray-900">
+        <div className="text-2xl text-gray-800 dark:text-gray-200 animate-pulse">Loading...</div>
       </div>
     );
   }
@@ -418,16 +464,17 @@ export default function SystemMonitorDashboard() {
   const showGpuCard = systemInfo.gpu !== null;
 
   return (
-    <div className="h-screen bg-gray-800 flex items-center justify-center">
-      <div className="container max-w-6xl mx-auto px-6 md:px-10 py-4 animate-fadeIn">
-        <div className={`grid grid-cols-1 ${showGpuCard ? 'md:grid-cols-4' : 'md:grid-cols-3'} gap-x-6 gap-y-6 mb-6`}>
-          <InfoCard title="Processor" info={systemInfo.processor} color="rgb(59, 130, 246)" showTemperature />
-          <InfoCard title="Memory" info={systemInfo.memory} color="rgb(239, 68, 68)" />
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-200 flex justify-center items-center">
+      <ThemeToggle isDark={isDarkMode} toggleTheme={toggleTheme} />
+      <div className="container max-w-4xl mx-auto px-4 py-8 animate-fadeIn">
+        <div className={`grid grid-cols-1 ${showGpuCard ? 'md:grid-cols-4' : 'md:grid-cols-3'} gap-4 mb-4`}>
+          <InfoCard title="Processor" info={systemInfo.processor} color={isDarkMode ? "rgb(59, 130, 246)" : "rgb(37, 99, 235)"} showTemperature />
+          <InfoCard title="Memory" info={systemInfo.memory} color={isDarkMode ? "rgb(239, 68, 68)" : "rgb(220, 38, 38)"} />
           {showGpuCard && <GPUCard gpu={systemInfo.gpu!} />}
           <StorageCardWithTabs storageData={systemInfo.storage} />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <WARD uptime={uptime} />
           <UtilizationChart utilizationData={utilizationData} temperatureData={temperatureData} />
         </div>
