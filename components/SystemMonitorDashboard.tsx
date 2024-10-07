@@ -144,7 +144,7 @@ const InfoCard = ({ title, info, color, showTemperature = false }: { title: stri
         )}
       </div>
 
-      <p className="text-xs mb-3 opacity-70 text-gray-600 dark:text-gray-400">{showTemp && showTemperature ? 'Temperature' : `${title.toLowerCase()} usage`}</p>
+      <p className="text-xs mb-3 opacity-70 text-gray-600 dark:text-gray-400">{showTemp && showTemperature ? 'Temperature' : `${title} Usage`}</p>
 
       <div className="grid grid-cols-2 gap-2 text-center text-gray-800 dark:text-gray-200">
         
@@ -258,7 +258,7 @@ const StorageCardWithTabs = ({ storageData }: { storageData: StorageInfo[] }) =>
           {renderUsageWithDimming(usage)}
           <span>%</span>
         </div>
-        <p className="text-xs mb-3 opacity-70">storage usage</p>
+        <p className="text-xs mb-3 opacity-70">Storage Usage</p>
 
         <div className="grid grid-cols-2 gap-2 text-center">
           <div>
@@ -290,7 +290,7 @@ const UtilizationChart = ({ utilizationData, temperatureData }: { utilizationDat
         </button>
       </div>
 
-      <div style={{ height: '90px', width: '100%' }}>
+      <div style={{ height: '100%', width: '100%' }}>
         <Line
           data={isTempView ? temperatureData : utilizationData}
           options={{
@@ -298,15 +298,26 @@ const UtilizationChart = ({ utilizationData, temperatureData }: { utilizationDat
             maintainAspectRatio: false,
             scales: {
               y: {
-                beginAtZero: !isTempView,
-                max: isTempView ? undefined : 100,
+                beginAtZero: true,
+                min: 0,
+                max: 100,
                 ticks: {
-                  stepSize: isTempView ? undefined : 10,
+                  stepSize: 10,
                   maxTicksLimit: 11,
                   color: 'rgb(156, 163, 175)',
+                },
+                grid: {
+                  color: 'rgba(156, 163, 175, 0.4)',
+                  lineWidth: 1.5,
                 }
               },
-              x: { display: false }
+              x: {
+                display: false,
+                grid: {
+                  color: 'rgba(156, 163, 175, 0.4)',
+                  lineWidth: 1.5,
+                }
+              }
             },
             plugins: {
               legend: { 
