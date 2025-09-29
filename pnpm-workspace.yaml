@@ -1,0 +1,8 @@
+onlyBuiltDependencies:
+  - "@tailwindcss/oxide"
+  - osx-temperature-sensor
+  - sharp
+  - unrs-resolver
+
+packages:
+  - .
