@@ -908,7 +908,7 @@ export default function SystemMonitorDashboard() {
           return [...prev.slice(-19), newDataPoint];
         });
       } catch (error) {
-        console.log(error)
+        console.log(error);
       }
     };
 
