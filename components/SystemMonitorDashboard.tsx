@@ -853,13 +853,7 @@ const LoadingScreen = ({ isDarkMode }: { isDarkMode: boolean }) => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background">
       <div className="relative">
-        <div className="w-16 h-16 border-4 border-border rounded-full animate-spin">
-          <div className="absolute top-0 left-0 w-16 h-16 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
-        </div>
-        <div
-          className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-chart-2 rounded-full animate-spin animate-pulse-glow"
-          style={{ animationDirection: "reverse", animationDuration: "1.5s" }}
-        ></div>
+        <div className="w-16 h-16 border-4 border-border/30 border-t-primary rounded-full animate-spin"></div>
       </div>
 
       <div className="mt-8 text-center space-y-2">
